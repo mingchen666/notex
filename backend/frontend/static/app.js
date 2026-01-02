@@ -75,6 +75,13 @@ class OpenNotebook {
         safeAddEventListener('btnBackToList', 'click', () => this.switchView('landing'));
         safeAddEventListener('btnToggleRight', 'click', () => this.toggleRightPanel());
         safeAddEventListener('btnToggleLeft', 'click', () => this.toggleLeftPanel());
+
+        // Panel tabs
+        document.querySelectorAll('.tab-btn').forEach(tab => {
+            tab.addEventListener('click', () => {
+                this.switchPanelTab(tab.dataset.tab);
+            });
+        });
         
         safeAddEventListener('newNotebookForm', 'submit', (e) => this.handleCreateNotebook(e));
         safeAddEventListener('btnCloseNotebookModal', 'click', () => this.closeModals());
@@ -266,11 +273,39 @@ class OpenNotebook {
         grid.classList.toggle('left-collapsed');
     }
 
+    switchPanelTab(tab) {
+        // Update tab buttons
+        document.querySelectorAll('.tab-btn').forEach(t => {
+            t.classList.toggle('active', t.dataset.tab === tab);
+        });
+
+        // Update content visibility
+        const chatWrapper = document.querySelector('.chat-messages-wrapper');
+        const noteViewContainer = document.querySelector('.note-view-container');
+
+        if (tab === 'note') {
+            chatWrapper.style.display = 'none';
+            if (noteViewContainer) {
+                noteViewContainer.style.display = 'flex';
+            }
+        } else if (tab === 'chat') {
+            chatWrapper.style.display = 'flex';
+            if (noteViewContainer) {
+                noteViewContainer.style.display = 'none';
+            }
+        }
+    }
+
     async selectNotebook(id) {
         this.currentNotebook = this.notebooks.find(nb => nb.id === id);
         
         document.getElementById('currentNotebookName').textContent = this.currentNotebook.name;
         this.switchView('workspace');
+        
+        // Reset tab to chat and remove any existing note view
+        this.switchPanelTab('chat');
+        const noteView = document.querySelector('.note-view-container');
+        if (noteView) noteView.remove();
 
         await Promise.all([
             this.loadSources(),
@@ -626,35 +661,43 @@ class OpenNotebook {
     async viewNote(note) {
         const renderedContent = marked.parse(note.content);
 
-        const modal = document.createElement('div');
-        modal.className = 'modal active';
-        modal.style.cssText = 'max-width: 800px; max-height: 85vh;';
-        modal.innerHTML = `
-            <div class="modal-header">
-                <h3>${note.title}</h3>
-                <div class="modal-header-actions">
-                    <button class="btn-copy-note" title="复制 Markdown">
-                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2">
-                            <rect x="3" y="3" width="10" height="10" rx="1"/>
-                            <path d="M7 3 L7 1 C7 1 13 1 13 1 L13 13 L11 13"/>
-                        </svg>
-                    </button>
-                    <button class="btn-close">×</button>
+        // Remove existing note view if any
+        const existingNoteView = document.querySelector('.note-view-container');
+        if (existingNoteView) {
+            existingNoteView.remove();
+        }
+
+        // Create note view container and insert it after chat-messages-wrapper
+        const noteViewHTML = `
+            <div class="note-view-container">
+                <div class="note-view-header">
+                    <div class="note-view-info">
+                        <span class="note-view-type">${note.type}</span>
+                        <span class="note-view-title-text">${note.title}</span>
+                    </div>
+                    <div class="note-view-actions">
+                        <button class="btn-copy-note" id="btnCopyNote" title="复制 Markdown">
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="3" width="10" height="10" rx="1"/>
+                                <path d="M7 3 L7 1 C7 1 13 1 13 1 L13 13 L11 13"/>
+                            </svg>
+                        </button>
+                    </div>
                 </div>
-            </div>
-            <div class="modal-body" style="max-height: calc(85vh - 120px); overflow-y: auto;">
-                <div class="markdown-content">${renderedContent}</div>
+                <div class="note-view-content">
+                    <div class="markdown-content">${renderedContent}</div>
+                </div>
             </div>
         `;
 
-        const closeBtn = modal.querySelector('.btn-close');
-        closeBtn.addEventListener('click', () => {
-            const overlay = document.getElementById('modalOverlay');
-            overlay.classList.remove('active');
-            overlay.innerHTML = '';
-        });
+        const chatWrapper = document.querySelector('.chat-messages-wrapper');
+        chatWrapper.insertAdjacentHTML('afterend', noteViewHTML);
 
-        const copyBtn = modal.querySelector('.btn-copy-note');
+        // Switch to note tab
+        this.switchPanelTab('note');
+
+        // Copy button
+        const copyBtn = document.getElementById('btnCopyNote');
         copyBtn.addEventListener('click', async () => {
             try {
                 await navigator.clipboard.writeText(note.content);
@@ -675,9 +718,14 @@ class OpenNotebook {
             }
         });
 
-        const overlay = document.getElementById('modalOverlay');
-        overlay.classList.add('active');
-        overlay.appendChild(modal);
+        // Highlight the selected note in the sidebar
+        document.querySelectorAll('.note-item').forEach(el => {
+            el.classList.remove('selected');
+        });
+        const noteItem = document.querySelector(`.note-item[data-id="${note.id}"]`);
+        if (noteItem) {
+            noteItem.classList.add('selected');
+        }
     }
 
     async deleteNote(id) {
