@@ -19,7 +19,8 @@ An AI-powered knowledge management application that lets you create intelligent 
 
 - 📚 **Multiple Source Types** - Upload PDFs, text files, Markdown, DOCX, and HTML documents
 - 🤖 **AI-Powered Chat** - Ask questions and get answers based on your sources
-- ✨ **Multiple Transformations** - Generate summaries, FAQs, study guides, outlines, timelines, glossaries, quizzes, and podcast scripts
+- ✨ **Multiple Transformations** - Generate summaries, FAQs, study guides, outlines, timelines, glossaries, quizzes, mindmaps, infographics and podcast scripts
+- 📊 **Infographic Generation** - Create beautiful, hand-drawn style infographics from your content using Google's Gemini Nano Banana
 - 🎙️ **Podcast Generation** - Create engaging podcast scripts from your content
 - 💾 **Full Privacy** - Local SQLite storage, optional cloud backends
 - 🔄 **Multi-Model Support** - Works with OpenAI, Ollama, and other compatible APIs
@@ -122,6 +123,7 @@ Click any transformation card to generate:
 | 📅 Timeline | Chronological events from sources |
 | 📖 Glossary | Key terms and definitions |
 | ✍️ Quiz | Assessment questions with answer key |
+| 📊 Infographic | Hand-drawn style visual representation of your content |
 
 Or use the custom prompt field for any other transformation.
 
@@ -137,6 +139,7 @@ Or use the custom prompt field for any other transformation.
 | `EMBEDDING_MODEL` | Embedding model | `text-embedding-3-small` |
 | `OLLAMA_BASE_URL` | Ollama server URL | `http://localhost:11434` |
 | `OLLAMA_MODEL` | Ollama model name | `llama3.2` |
+| `GOOGLE_API_KEY` | Google Gemini API key | Required for Infographics |
 | `SERVER_HOST` | Server host | `0.0.0.0` |
 | `SERVER_PORT` | Server port | `8080` |
 | `VECTOR_STORE_TYPE` | Vector store backend | `sqlite` |

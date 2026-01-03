@@ -18,7 +18,8 @@ AI 驱动知识管理应用程序，让您从文档中创建智能笔记本。
 
 - 📚 **多种来源类型** - 支持上传 PDF、文本文件、Markdown、DOCX 和 HTML 文档
 - 🤖 **AI 驱动对话** - 基于您的来源提问并获得答案
-- ✨ **多种转换** - 生成摘要、FAQ、学习指南、大纲、时间线、词汇表、测验和播客脚本
+- ✨ **多种转换** - 生成摘要、FAQ、学习指南、大纲、时间线、词汇表、测验、思维导图、信息图和播客脚本
+- 📊 **信息图生成** - 使用 Google Gemini Nano Banana 从您的内容创建精美的手绘风格信息图
 - 🎙️ **播客生成** - 从您的内容创建引人入胜的播客脚本
 - 💾 **完全隐私** - 本地 SQLite 存储，可选云端后端
 - 🔄 **多模型支持** - 兼容 OpenAI、Ollama 和其他兼容 API
@@ -121,6 +122,7 @@ export OLLAMA_BASE_URL=http://localhost:11434
 | 📅 时间线 | 来源中的按时间顺序的事件 |
 | 📖 词汇表 | 关键术语和定义 |
 | ✍️ 测验 | 带答案的评估问题 |
+| 📊 信息图 | 内容的手绘风格视觉呈现 |
 
 或使用自定义提示字段进行任何其他转换。
 
@@ -136,6 +138,7 @@ export OLLAMA_BASE_URL=http://localhost:11434
 | `EMBEDDING_MODEL` | 嵌入模型 | `text-embedding-3-small` |
 | `OLLAMA_BASE_URL` | Ollama 服务器 URL | `http://localhost:11434` |
 | `OLLAMA_MODEL` | Ollama 模型名称 | `llama3.2` |
+| `GOOGLE_API_KEY` | Google Gemini API 密钥 | 信息图生成必需 |
 | `SERVER_HOST` | 服务器主机 | `0.0.0.0` |
 | `SERVER_PORT` | 服务器端口 | `8080` |
 | `VECTOR_STORE_TYPE` | 向量存储后端 | `sqlite` |
@@ -286,6 +289,7 @@ Apache License 2.0 - 详见 [LICENSE](./LICENSE)
 6. **时间线** - 整理事件的时间顺序
 7. **词汇表** - 提取关键术语和定义
 8. **测验** - 创建评估问题和答案
+9. **信息图** - 生成具有亲和力的手绘风格视觉设计图
 
 ### 灵活的知识管理
 
