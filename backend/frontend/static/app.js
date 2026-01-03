@@ -1036,7 +1036,7 @@ class OpenNotebook {
         const nameMap = {
             summary: '摘要', faq: '常见问题', study_guide: '学习指南', outline: '大纲',
             podcast: '播客', timeline: '时间线', glossary: '术语表', quiz: '测验',
-            mindmap: '思维导图', infograph: '信息图', ppt: 'PPT大纲'
+            mindmap: '思维导图', infograph: '信息图', ppt: '幻灯片'
         };
         const typeName = nameMap[type] || '内容';
 

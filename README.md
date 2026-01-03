@@ -124,6 +124,7 @@ Click any transformation card to generate:
 | 📖 Glossary | Key terms and definitions |
 | ✍️ Quiz | Assessment questions with answer key |
 | 📊 Infographic | Hand-drawn style visual representation of your content |
+| 🧠 Mindmap | Visual hierarchical diagram of your sources using Mermaid.js |
 
 Or use the custom prompt field for any other transformation.
 

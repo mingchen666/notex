@@ -520,7 +520,7 @@ func (s *Server) handleTransform(c *gin.Context) {
 	if req.Type == "infograph" {
 		extra := "**注意：无论来源是什么语言，请务必使用中文**"
 		prompt := response.Content + "\n\n" + extra
-		imagePath, err := s.agent.GenerateInfographImage(ctx, "gemini-3-pro-image-preview", prompt)
+		imagePath, err := s.agent.GenerateImage(ctx, "gemini-3-pro-image-preview", prompt)
 		if err != nil {
 			golog.Errorf("failed to generate infographic image: %v", err)
 			metadata["image_error"] = err.Error()
@@ -545,8 +545,8 @@ func (s *Server) handleTransform(c *gin.Context) {
 				golog.Infof("generating image for slide %d/%d...", i+1, len(slides))
 				// Combine style and slide content for the image generator
 				prompt := fmt.Sprintf("Style: %s\n\nSlide Content: %s", slides[0].Style, slide.Content)
-				prompt += "\n\n**注意：无论来源是什么语言，请务必使用英文**\n"
-				imagePath, err := s.agent.GenerateInfographImage(ctx, "gemini-2.5-flash-image", prompt)
+				prompt += "\n\n**注意：无论来源是什么语言，请务必使用中文**\n"
+				imagePath, err := s.agent.GenerateImage(ctx, "gemini-3-pro-image-preview", prompt)
 				if err != nil {
 					golog.Errorf("failed to generate slide %d: %v", i+1, err)
 					continue
@@ -586,7 +586,7 @@ func getTitleForType(t string) string {
 		"glossary":    "术语表",
 		"quiz":        "测验",
 		"infograph":   "信息图",
-		"ppt":         "PPT大纲",
+		"ppt":         "幻灯片",
 	}
 	if title, ok := titles[t]; ok {
 		return title

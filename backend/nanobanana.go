@@ -13,8 +13,8 @@ import (
 	"google.golang.org/genai"
 )
 
-// GenerateInfographImage generates an infographic image using the Nano Banana Pro SDK
-func (a *Agent) GenerateInfographImage(ctx context.Context, model, prompt string) (string, error) {
+// GenerateImage generates an image using the Nano Banana Pro SDK
+func (a *Agent) GenerateImage(ctx context.Context, model, prompt string) (string, error) {
 	if a.cfg.GoogleAPIKey == "" {
 		golog.Errorf("google_api_key is not set")
 		return "", fmt.Errorf("google_api_key is not set")
@@ -40,7 +40,7 @@ func (a *Agent) GenerateInfographImage(ctx context.Context, model, prompt string
 
 	// Using gemini-3-pro-image-preview as requested
 	// model := "gemini-3-pro-image-preview"
-	golog.Infof("generating infographic with model %s using GenerateContent...", model)
+	golog.Infof("generating images with model %s using GenerateContent...", model)
 
 	ctx, cancel := context.WithTimeout(ctx, 300*time.Second)
 	defer cancel()
