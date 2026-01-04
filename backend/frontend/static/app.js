@@ -47,7 +47,7 @@ class OpenNotebook {
 
     applyConfig() {
         // Show/hide delete buttons based on allowDelete config
-        const deleteButtons = document.querySelectorAll('.btn-delete, .btn-remove-source, .btn-delete-note');
+        const deleteButtons = document.querySelectorAll('.btn-delete, .btn-remove-source, .btn-delete-note, .btn-delete-card, .btn-delete-notebook');
         deleteButtons.forEach(btn => {
             if (this.config.allowDelete) {
                 btn.style.display = '';
