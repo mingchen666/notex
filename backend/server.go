@@ -621,6 +621,8 @@ func getTitleForType(t string) string {
 		"quiz":        "测验",
 		"infograph":   "信息图",
 		"ppt":         "幻灯片",
+		"mindmap":     "思维导图",
+		"insight":     "洞察报告",
 	}
 	if title, ok := titles[t]; ok {
 		return title
