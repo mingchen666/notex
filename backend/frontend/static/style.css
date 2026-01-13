@@ -1109,6 +1109,66 @@ body {
 }
 
 /* Infographic Styles */
+.infographic-error-banner {
+    margin: 1.5rem 0;
+    padding: var(--space-md);
+    background: #fff5f5;
+    border: 1px solid #fed7d7;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+}
+
+.error-banner-content {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-md);
+    color: #c53030;
+    margin-bottom: var(--space-md);
+}
+
+.error-banner-content svg {
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.error-banner-content strong {
+    display: block;
+    margin-bottom: var(--space-xs);
+}
+
+.error-banner-content p {
+    margin: 0;
+    font-size: 0.875rem;
+}
+
+.error-banner-prompt {
+    margin-top: var(--space-md);
+    padding: var(--space-md);
+    background: #ffffff;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-color);
+}
+
+.error-banner-prompt strong {
+    display: block;
+    margin-bottom: var(--space-sm);
+    color: var(--text-primary);
+    font-size: 0.875rem;
+}
+
+.error-banner-prompt pre {
+    margin: 0;
+    padding: var(--space-md);
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--text-primary);
+    white-space: pre-wrap;
+    word-break: break-word;
+    overflow-x: auto;
+}
+
 .infographic-container {
     margin: 1.5rem 0;
     padding: var(--space-md);
@@ -2471,7 +2531,8 @@ body {
 }
 
 .stat-sources,
-.stat-notes {
+.stat-notes,
+.stat-date {
     font-family: var(--font-mono);
     font-size: 0.75rem;
     color: var(--text-muted);

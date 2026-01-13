@@ -428,6 +428,7 @@ class OpenNotebook {
             // 直接使用从 API 获取的统计信息
             card.querySelector('.stat-sources').textContent = `${nb.source_count || 0} 来源`;
             card.querySelector('.stat-notes').textContent = `${nb.note_count || 0} 笔记`;
+            card.querySelector('.stat-date').textContent = this.formatDate(nb.created_at);
 
             card.addEventListener('click', (e) => {
                 if (!e.target.closest('.btn-delete-card')) {
@@ -1025,7 +1026,43 @@ class OpenNotebook {
 
     async viewNote(note) {
         const renderedContent = marked.parse(note.content);
-        const infographicHTML = note.metadata?.image_url 
+
+        // 信息图错误提示 HTML
+        let infographicErrorHTML = '';
+        if (note.type === 'infograph' && note.metadata?.image_error) {
+            // 转义 HTML 特殊字符
+            const escapeHtml = (text) => {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            };
+
+            const fullPrompt = note.content + '\n\n**注意：无论来源是什么语言，请务必使用中文**';
+            const escapedPrompt = escapeHtml(fullPrompt);
+            const escapedError = escapeHtml(note.metadata.image_error);
+
+            infographicErrorHTML = `
+                <div class="infographic-error-banner">
+                    <div class="error-banner-content">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="10" cy="10" r="8"/>
+                            <line x1="10" y1="7" x2="10" y2="13"/>
+                            <line x1="10" y1="16" x2="10" y2="16"/>
+                        </svg>
+                        <div>
+                            <strong>图片生成失败</strong>
+                            <p>${escapedError}</p>
+                        </div>
+                    </div>
+                    <div class="error-banner-prompt">
+                        <strong>生成的 Prompt（可用于手动生成）：</strong>
+                        <pre>${escapedPrompt}</pre>
+                    </div>
+                </div>
+            `;
+        }
+
+        const infographicHTML = note.metadata?.image_url
             ? `<div class="infographic-container">
                  <img src="${note.metadata.image_url}" alt="Infographic" class="infographic-image">
                  <div class="infographic-actions">
@@ -1093,6 +1130,7 @@ class OpenNotebook {
                     </div>
                 </div>
                 <div class="note-view-content">
+                    ${infographicErrorHTML}
                     ${infographicHTML}
                     ${pptSliderHTML}
                     <div class="markdown-content" style="${showMarkdownContent ? '' : 'display:none'}">${renderedContent}</div>
@@ -1312,6 +1350,12 @@ class OpenNotebook {
             return;
         }
 
+        // 洞察按钮：在新窗口打开 insight.rpcx.io
+        if (type === 'insight') {
+            window.open('https://insight.rpcx.io', '_blank');
+            return;
+        }
+
         const sources = await this.api(`/notebooks/${this.currentNotebook.id}/sources`);
         if (sources.length === 0) {
             this.showError('请先添加来源');
@@ -1405,7 +1449,13 @@ class OpenNotebook {
             await this.updateCurrentNotebookCounts();
             this.updateFooter();
             document.getElementById('customPrompt').value = '';
-            this.setStatus(`成功生成 ${typeName}`);
+
+            // 检查信息图生成是否失败
+            if (type === 'infograph' && note.metadata?.image_error) {
+                this.showWarn(`信息图图片生成失败: ${note.metadata.image_error}\n\n生成的 prompt 可在笔记中查看`);
+            } else {
+                this.setStatus(`成功生成 ${typeName}`);
+            }
 
             // If type is insight, refresh sources list to show the injected insight report
             if (type === 'insight') {
@@ -1554,7 +1604,7 @@ class OpenNotebook {
             position: fixed; bottom: 60px; right: 20px; padding: 12px 20px;
             background: var(--accent-red); color: white; font-family: var(--font-mono);
             font-size: 0.75rem; border-radius: 4px; box-shadow: var(--shadow-medium);
-            animation: slideIn 0.3s ease; z-index: 3000;
+            animation: slideIn 0.3s ease; z-index: 3000; white-space: pre-wrap; max-width: 400px;
         `;
         toast.textContent = message;
         document.body.appendChild(toast);
@@ -1562,7 +1612,25 @@ class OpenNotebook {
         setTimeout(() => {
             toast.style.opacity = '0';
             setTimeout(() => toast.remove(), 300);
-        }, 3000);
+        }, 5000);
+    }
+
+    showWarn(message) {
+        const toast = document.createElement('div');
+        toast.className = 'warn-toast';
+        toast.style.cssText = `
+            position: fixed; bottom: 60px; right: 20px; padding: 12px 20px;
+            background: var(--accent-orange); color: white; font-family: var(--font-mono);
+            font-size: 0.75rem; border-radius: 4px; box-shadow: var(--shadow-medium);
+            animation: slideIn 0.3s ease; z-index: 3000; white-space: pre-wrap; max-width: 400px;
+        `;
+        toast.textContent = message;
+        document.body.appendChild(toast);
+
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            setTimeout(() => toast.remove(), 300);
+        }, 5000);
     }
 
     updateFooter() {
@@ -1580,7 +1648,7 @@ class OpenNotebook {
         if (diff < 3600000) return `${Math.floor(diff / 60000)}分钟前`;
         if (diff < 86400000) return `${Math.floor(diff / 3600000)}小时前`;
 
-        return date.toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' });
+        return date.toLocaleDateString('zh-CN', { year: 'numeric', month: 'short', day: 'numeric' });
     }
 
     async updateCurrentNotebookCounts() {
