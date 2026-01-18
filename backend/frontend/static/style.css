@@ -2608,6 +2608,67 @@ body {
     font-weight: 600;
 }
 
+.notebook-name-display {
+    cursor: default;
+    transition: all var(--transition-fast);
+}
+
+.notebook-name-display.editable {
+    cursor: pointer;
+}
+
+.notebook-name-display.editable:hover {
+    color: var(--accent-primary);
+}
+
+.notebook-name-editor {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+}
+
+.notebook-name-editor.hidden {
+    display: none;
+}
+
+.notebook-name-input {
+    font-size: 1.1rem;
+    font-weight: 600;
+    padding: 4px 8px;
+    border: 1px solid var(--accent-primary);
+    border-radius: var(--radius-sm);
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    outline: none;
+    min-width: 200px;
+}
+
+.notebook-name-input:focus {
+    box-shadow: 0 0 0 2px var(--accent-light);
+}
+
+.notebook-name-actions {
+    display: flex;
+    gap: var(--space-xs);
+}
+
+.notebook-name-actions .btn-save {
+    color: var(--accent-primary);
+}
+
+.notebook-name-actions .btn-save:hover {
+    background: var(--accent-light);
+}
+
+.notebook-name-actions .btn-cancel {
+    color: var(--text-secondary);
+}
+
+.notebook-name-actions .btn-cancel:hover {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+}
+
 /* Note View Container */
 .note-view-container {
     display: none;

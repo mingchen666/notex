@@ -68,8 +68,24 @@
                     </svg>
                     返回列表
                 </button>
-                <div class="current-notebook-info">
-                    <h2 id="currentNotebookName">笔记本名称</h2>
+                <div class="current-notebook-info" id="notebookNameContainer">
+                    <h2 id="currentNotebookName" class="notebook-name-display">笔记本名称</h2>
+                    <div id="notebookNameEditor" class="notebook-name-editor hidden">
+                        <input type="text" id="notebookNameInput" class="notebook-name-input" maxlength="50" />
+                        <div class="notebook-name-actions">
+                            <button id="btnSaveNotebookName" class="btn-icon btn-save" title="保存">
+                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="13,4 6,11 3,8"/>
+                                </svg>
+                            </button>
+                            <button id="btnCancelNotebookName" class="btn-icon btn-cancel" title="取消">
+                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2">
+                                    <line x1="4" y1="4" x2="12" y2="12"/>
+                                    <line x1="12" y1="4" x2="4" y2="12"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
                 </div>
                 <div class="workspace-actions">
                     <a href="https://github.com/smallnest/notex" target="_blank" class="btn-github" title="GitHub 仓库" style="margin-right: 8px;">

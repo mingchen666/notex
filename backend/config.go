@@ -51,6 +51,7 @@ type Config struct {
 	// Demo settings
 	AllowDelete                      bool
 	AllowMultipleNotesOfSameType     bool
+	AllowNotebookRename              bool
 
 	// LangSmith tracing (optional)
 	LangChainAPIKey    string
@@ -98,6 +99,7 @@ func LoadConfig() Config {
 		EnableMarkitdown:           getEnvBool("ENABLE_MARKITDOWN", true),
 		AllowDelete:                getEnvBool("ALLOW_DELETE", true),
 		AllowMultipleNotesOfSameType: getEnvBool("ALLOW_MULTIPLE_NOTES_OF_SAME_TYPE", true),
+		AllowNotebookRename:        getEnvBool("ALLOW_NOTEBOOK_RENAME", true),
 		LangChainAPIKey:  getEnv("LANGCHAIN_API_KEY", ""),
 		LangChainProject: getEnv("LANGCHAIN_PROJECT", "open-notebook"),
 	}

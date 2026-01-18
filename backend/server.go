@@ -194,7 +194,8 @@ func (s *Server) handleHealth(c *gin.Context) {
 
 func (s *Server) handleConfig(c *gin.Context) {
 	c.JSON(http.StatusOK, ConfigResponse{
-		AllowDelete: s.cfg.AllowDelete,
+		AllowDelete:         s.cfg.AllowDelete,
+		AllowNotebookRename: s.cfg.AllowNotebookRename,
 	})
 }
 

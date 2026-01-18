@@ -157,6 +157,7 @@ class OpenNotebook {
         await this.loadConfig();
         this.bindEvents();
         this.initResizers();
+        this.initNotebookNameEditor();
         this.switchView('landing');
 
         // 清理过期缓存
@@ -171,7 +172,8 @@ class OpenNotebook {
             const config = await this.api('/config');
             // Convert snake_case to camelCase
             this.config = {
-                allowDelete: config.allow_delete !== undefined ? config.allow_delete : true
+                allowDelete: config.allow_delete !== undefined ? config.allow_delete : true,
+                allowNotebookRename: config.allow_notebook_rename !== undefined ? config.allow_notebook_rename : true
             };
         } catch (error) {
             console.error('Failed to load config:', error);
@@ -621,10 +623,19 @@ class OpenNotebook {
 
     async selectNotebook(id) {
         this.currentNotebook = this.notebooks.find(nb => nb.id === id);
-        
-        document.getElementById('currentNotebookName').textContent = this.currentNotebook.name;
+
+        const nameDisplay = document.getElementById('currentNotebookName');
+        nameDisplay.textContent = this.currentNotebook.name;
+
+        // 设置可编辑状态
+        if (this.config.allowNotebookRename) {
+            nameDisplay.classList.add('editable');
+        } else {
+            nameDisplay.classList.remove('editable');
+        }
+
         this.switchView('workspace');
-        
+
         // Reset tab to notes list and remove any existing note view
         this.showNotesListTab();
         const noteView = document.querySelector('.note-view-container');
@@ -637,6 +648,110 @@ class OpenNotebook {
         ]);
 
         this.setStatus(`当前选择: ${this.currentNotebook.name}`);
+    }
+
+    initNotebookNameEditor() {
+        const nameDisplay = document.getElementById('currentNotebookName');
+        const nameEditor = document.getElementById('notebookNameEditor');
+        const nameInput = document.getElementById('notebookNameInput');
+        const saveBtn = document.getElementById('btnSaveNotebookName');
+        const cancelBtn = document.getElementById('btnCancelNotebookName');
+
+        // 双击进入编辑模式
+        nameDisplay.addEventListener('dblclick', () => {
+            if (!this.config.allowNotebookRename) return;
+            this.startEditingNotebookName();
+        });
+
+        // 点击保存按钮
+        saveBtn.addEventListener('click', () => {
+            this.saveNotebookName();
+        });
+
+        // 点击取消按钮
+        cancelBtn.addEventListener('click', () => {
+            this.cancelEditNotebookName();
+        });
+
+        // 输入框回车保存
+        nameInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                this.saveNotebookName();
+            } else if (e.key === 'Escape') {
+                this.cancelEditNotebookName();
+            }
+        });
+    }
+
+    startEditingNotebookName() {
+        const nameDisplay = document.getElementById('currentNotebookName');
+        const nameEditor = document.getElementById('notebookNameEditor');
+        const nameInput = document.getElementById('notebookNameInput');
+
+        nameInput.value = this.currentNotebook.name;
+        nameDisplay.classList.add('hidden');
+        nameEditor.classList.remove('hidden');
+        nameInput.focus();
+        nameInput.select();
+    }
+
+    async saveNotebookName() {
+        const nameInput = document.getElementById('notebookNameInput');
+        const newName = nameInput.value.trim();
+
+        if (!newName) {
+            this.showError('笔记本名称不能为空');
+            return;
+        }
+
+        if (newName === this.currentNotebook.name) {
+            this.cancelEditNotebookName();
+            return;
+        }
+
+        try {
+            this.showLoading('保存中...');
+
+            const updated = await this.api(`/notebooks/${this.currentNotebook.id}`, {
+                method: 'PUT',
+                body: JSON.stringify({
+                    name: newName,
+                    description: this.currentNotebook.description
+                })
+            });
+
+            // 更新本地数据
+            this.currentNotebook.name = newName;
+            this.currentNotebook.updated_at = updated.updated_at;
+
+            // 更新 notebooks 列表中的数据
+            const nb = this.notebooks.find(n => n.id === this.currentNotebook.id);
+            if (nb) {
+                nb.name = newName;
+                nb.updated_at = updated.updated_at;
+            }
+
+            // 使缓存失效
+            this.cache.delete('notebooks');
+
+            // 更新显示
+            document.getElementById('currentNotebookName').textContent = newName;
+            this.cancelEditNotebookName();
+            this.hideLoading();
+            this.setStatus('笔记本名称已更新');
+
+        } catch (error) {
+            this.hideLoading();
+            this.showError(error.message);
+        }
+    }
+
+    cancelEditNotebookName() {
+        const nameDisplay = document.getElementById('currentNotebookName');
+        const nameEditor = document.getElementById('notebookNameEditor');
+
+        nameDisplay.classList.remove('hidden');
+        nameEditor.classList.add('hidden');
     }
 
     showNewNotebookModal() {
