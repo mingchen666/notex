@@ -159,6 +159,23 @@ func (s *Store) initSchema() error {
 	CREATE INDEX IF NOT EXISTS idx_chat_sessions_notebook ON chat_sessions(notebook_id);
 	CREATE INDEX IF NOT EXISTS idx_chat_messages_session ON chat_messages(session_id);
 	CREATE INDEX IF NOT EXISTS idx_podcasts_notebook ON podcasts(notebook_id);
+
+	CREATE TABLE IF NOT EXISTS activity_logs (
+		id TEXT PRIMARY KEY,
+		user_id TEXT NOT NULL,
+		action TEXT NOT NULL,
+		resource_type TEXT,
+		resource_id TEXT,
+		resource_name TEXT,
+		details TEXT,
+		ip_address TEXT,
+		user_agent TEXT,
+		created_at INTEGER NOT NULL,
+		FOREIGN KEY (user_id) REFERENCES users(id)
+	);
+
+	CREATE INDEX IF NOT EXISTS idx_activity_logs_user ON activity_logs(user_id);
+	CREATE INDEX IF NOT EXISTS idx_activity_logs_created ON activity_logs(created_at);
 	`
 
 	_, err = s.db.Exec(restSchema)
@@ -809,6 +826,27 @@ func (s *Store) getChatMessage(ctx context.Context, id string) (*ChatMessage, er
 // DeleteChatSession deletes a chat session
 func (s *Store) DeleteChatSession(ctx context.Context, id string) error {
 	_, err := s.db.ExecContext(ctx, `DELETE FROM chat_sessions WHERE id = ?`, id)
+	return err
+}
+
+// LogActivity logs a user activity to both database and audit log file
+func (s *Store) LogActivity(ctx context.Context, log *ActivityLog) error {
+	if log.ID == "" {
+		log.ID = uuid.New().String()
+	}
+	if log.CreatedAt.IsZero() {
+		log.CreatedAt = time.Now()
+	}
+
+	// Write to database
+	_, err := s.db.ExecContext(ctx, `
+		INSERT INTO activity_logs (id, user_id, action, resource_type, resource_id, resource_name, details, ip_address, user_agent, created_at)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+	`, log.ID, log.UserID, log.Action, log.ResourceType, log.ResourceID, log.ResourceName, log.Details, log.IPAddress, log.UserAgent, log.CreatedAt.Unix())
+
+	// Also write to audit log file (async, don't fail if it errors)
+	LogUserActivity(log.Action, log.UserID, log.ResourceType, log.ResourceID, log.ResourceName, log.Details, log.IPAddress, log.UserAgent)
+
 	return err
 }
 

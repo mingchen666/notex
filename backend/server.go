@@ -99,6 +99,15 @@ func (s *Server) setupRoutes() {
 		c.Data(http.StatusOK, "text/html; charset=utf-8", content)
 	})
 
+	// Serve index.html at /notes/:id (for shareable notebook links)
+	// This route allows users to access a notebook directly via URL like /notes/xxxxxxxx
+	// The frontend will parse the notebook ID from the URL and load it
+	s.http.GET("/notes/:id", AuditMiddlewareLite(), func(c *gin.Context) {
+		c.Header("Cache-Control", "no-cache")
+		content, _ := frontendFS.ReadFile("frontend/index.html")
+		c.Data(http.StatusOK, "text/html; charset=utf-8", content)
+	})
+
 	// Auth routes (OAuth - no auth required)
 	auth := s.http.Group("/auth")
 	{
@@ -263,6 +272,20 @@ func (s *Server) handleCreateNotebook(c *gin.Context) {
 		return
 	}
 
+	// Log notebook creation activity
+	activityLog := &ActivityLog{
+		UserID:       userID,
+		Action:       "create_notebook",
+		ResourceType: "notebook",
+		ResourceID:   notebook.ID,
+		ResourceName: notebook.Name,
+		IPAddress:    c.ClientIP(),
+		UserAgent:    c.GetHeader("User-Agent"),
+	}
+	if err := s.store.LogActivity(ctx, activityLog); err != nil {
+		golog.Errorf("failed to log notebook creation activity: %v", err)
+	}
+
 	c.JSON(http.StatusCreated, notebook)
 }
 
@@ -417,6 +440,21 @@ func (s *Server) handleAddSource(c *gin.Context) {
 		return
 	}
 
+	// Log source import activity
+	activityLog := &ActivityLog{
+		UserID:       userID,
+		Action:       "add_source",
+		ResourceType: "source",
+		ResourceID:   source.ID,
+		ResourceName: source.Name,
+		Details:      fmt.Sprintf(`{"notebook_id": "%s", "source_type": "%s", "source_url": "%s"}`, notebookID, source.Type, source.URL),
+		IPAddress:    c.ClientIP(),
+		UserAgent:    c.GetHeader("User-Agent"),
+	}
+	if err := s.store.LogActivity(ctx, activityLog); err != nil {
+		golog.Errorf("failed to log source import activity: %v", err)
+	}
+
 	// Ingest into vector store (synchronous for immediate availability)
 	if source.Content != "" {
 		if chunkCount, err := s.vectorStore.IngestText(ctx, notebookID, source.Name, source.Content); err != nil {
@@ -538,6 +576,21 @@ func (s *Server) handleUpload(c *gin.Context) {
 		return
 	}
 
+	// Log file upload activity
+	activityLog := &ActivityLog{
+		UserID:       userID,
+		Action:       "upload_file",
+		ResourceType: "source",
+		ResourceID:   source.ID,
+		ResourceName: file.Filename,
+		Details:      fmt.Sprintf(`{"notebook_id": "%s", "file_size": %d, "file_type": "%s"}`, notebookID, file.Size, filepath.Ext(file.Filename)),
+		IPAddress:    c.ClientIP(),
+		UserAgent:    c.GetHeader("User-Agent"),
+	}
+	if err := s.store.LogActivity(ctx, activityLog); err != nil {
+		golog.Errorf("failed to log file upload activity: %v", err)
+	}
+
 	// Ingest into vector store (synchronous for immediate availability)
 	// Get chunk count from vector store stats
 	stats, _ := s.vectorStore.GetStats(ctx)
@@ -604,6 +657,21 @@ func (s *Server) handleCreateNote(c *gin.Context) {
 	if err := s.store.CreateNote(ctx, note); err != nil {
 		c.JSON(http.StatusInternalServerError, ErrorResponse{Error: "Failed to create note"})
 		return
+	}
+
+	// Log note creation activity
+	activityLog := &ActivityLog{
+		UserID:       c.GetString("user_id"),
+		Action:       "create_note",
+		ResourceType: "note",
+		ResourceID:   note.ID,
+		ResourceName: note.Title,
+		Details:      fmt.Sprintf(`{"notebook_id": "%s", "note_type": "%s", "source_count": %d}`, notebookID, note.Type, len(note.SourceIDs)),
+		IPAddress:    c.ClientIP(),
+		UserAgent:    c.GetHeader("User-Agent"),
+	}
+	if err := s.store.LogActivity(ctx, activityLog); err != nil {
+		golog.Errorf("failed to log note creation activity: %v", err)
 	}
 
 	c.JSON(http.StatusCreated, note)
@@ -759,6 +827,21 @@ func (s *Server) handleTransform(c *gin.Context) {
 	if err := s.store.CreateNote(ctx, note); err != nil {
 		c.JSON(http.StatusInternalServerError, ErrorResponse{Error: "Failed to save note"})
 		return
+	}
+
+	// Log transformation activity
+	activityLog := &ActivityLog{
+		UserID:       userID,
+		Action:       "transform",
+		ResourceType: "note",
+		ResourceID:   note.ID,
+		ResourceName: note.Title,
+		Details:      fmt.Sprintf(`{"notebook_id": "%s", "transform_type": "%s", "length": "%s", "format": "%s", "source_count": %d}`, notebookID, req.Type, req.Length, req.Format, len(req.SourceIDs)),
+		IPAddress:    c.ClientIP(),
+		UserAgent:    c.GetHeader("User-Agent"),
+	}
+	if err := s.store.LogActivity(ctx, activityLog); err != nil {
+		golog.Errorf("failed to log transformation activity: %v", err)
 	}
 
 	// If type is insight, inject the insight report as a new source

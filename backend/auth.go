@@ -11,6 +11,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/kataras/golog"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/github"
 	"golang.org/x/oauth2/google"
@@ -202,6 +203,20 @@ func (h *AuthHandler) HandleCallback(c *gin.Context) {
     if err != nil {
         c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
         return
+    }
+
+    // Log user login activity
+    activityLog := &ActivityLog{
+        UserID:       dbUser.ID,
+        Action:       "login",
+        ResourceName: provider,
+        Details:      fmt.Sprintf(`{"provider": "%s", "email": "%s"}`, provider, dbUser.Email),
+        IPAddress:    c.ClientIP(),
+        UserAgent:    c.GetHeader("User-Agent"),
+    }
+    if err := h.store.LogActivity(context.Background(), activityLog); err != nil {
+        // Log error but don't fail the login
+        golog.Errorf("failed to log login activity: %v", err)
     }
 
     // Return token via HTML for popup or redirect

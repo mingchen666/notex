@@ -160,13 +160,45 @@ class OpenNotebook {
         this.bindEvents();
         this.initResizers();
         this.initNotebookNameEditor();
-        this.switchView('landing');
 
         // 清理过期缓存
         this.cache.cleanup();
 
         await this.loadNotebooks();
         this.applyConfig();
+
+        // Check if URL contains /notes/:id for direct notebook access
+        // Only switch to landing if no notebook ID in URL
+        if (!this.checkURLForNotebook()) {
+            this.switchView('landing');
+        }
+    }
+
+    // Check if URL contains /notes/:id and auto-load the notebook
+    // Returns true if a notebook was found and loaded, false otherwise
+    checkURLForNotebook() {
+        const path = window.location.pathname;
+        const match = path.match(/^\/notes\/([a-f0-9-]+)$/);
+        if (match) {
+            const notebookId = match[1];
+            // Check if notebook exists in loaded notebooks
+            const notebook = this.notebooks.find(nb => nb.id === notebookId);
+            if (notebook) {
+                this.selectNotebook(notebookId);
+                return true;  // Notebook found and loaded
+            } else {
+                // Notebook not found or user doesn't have access
+                this.setStatus('笔记本不存在或无权访问', true);
+                return false;  // Notebook not found
+            }
+        }
+        return false;  // No notebook ID in URL
+    }
+
+    // Update URL when notebook is selected
+    updateURL(notebookId) {
+        const newURL = `/notes/${notebookId}`;
+        window.history.pushState({ notebookId }, '', newURL);
     }
 
     async loadConfig() {
@@ -315,6 +347,21 @@ class OpenNotebook {
                 this.closeModals();
             }
         });
+
+        // Handle browser back/forward buttons
+        window.addEventListener('popstate', (event) => {
+            const path = window.location.pathname;
+            const match = path.match(/^\/notes\/([a-f0-9-]+)$/);
+            if (match) {
+                const notebookId = match[1];
+                const notebook = this.notebooks.find(nb => nb.id === notebookId);
+                if (notebook && !this.currentNotebook) {
+                    this.selectNotebook(notebookId);
+                }
+            } else if (path === '/' && this.currentNotebook) {
+                this.switchView('landing');
+            }
+        });
     }
 
     // API 方法
@@ -402,16 +449,30 @@ class OpenNotebook {
         const userNameWorkspace = document.getElementById('userNameWorkspace');
 
         if (this.currentUser) {
+            // Get provider display name
+            const providerNames = {
+                'github': 'GitHub',
+                'google': 'Google'
+            };
+            const providerName = providerNames[this.currentUser.provider] || this.currentUser.provider;
+            const tooltipText = `登录方式: ${providerName}\n账号ID: ${this.currentUser.email}`;
+
             // Update landing page
             if (btnLogin) btnLogin.classList.add('hidden');
             if (userProfile) userProfile.classList.remove('hidden');
-            if (userAvatar) userAvatar.src = this.currentUser.avatar_url;
+            if (userAvatar) {
+                userAvatar.src = this.currentUser.avatar_url;
+                userAvatar.title = tooltipText;
+            }
             if (userName) userName.textContent = this.currentUser.name;
 
             // Update workspace
             if (btnLoginWorkspace) btnLoginWorkspace.classList.add('hidden');
             if (userProfileWorkspace) userProfileWorkspace.classList.remove('hidden');
-            if (userAvatarWorkspace) userAvatarWorkspace.src = this.currentUser.avatar_url;
+            if (userAvatarWorkspace) {
+                userAvatarWorkspace.src = this.currentUser.avatar_url;
+                userAvatarWorkspace.title = tooltipText;
+            }
             if (userNameWorkspace) userNameWorkspace.textContent = this.currentUser.name;
         } else {
             // Update landing page
@@ -631,6 +692,8 @@ class OpenNotebook {
             header.classList.remove('hidden');
             this.currentNotebook = null;
             this.renderNotebookCards();
+            // Update URL to root when returning to landing page
+            window.history.pushState({}, '', '/');
         }
     }
 
@@ -779,6 +842,9 @@ class OpenNotebook {
         const nameDisplay = document.getElementById('currentNotebookName');
         nameDisplay.textContent = this.currentNotebook.name;
         nameDisplay.classList.add('editable');
+
+        // Update URL to /notes/:id for shareable links
+        this.updateURL(id);
 
         this.switchView('workspace');
 

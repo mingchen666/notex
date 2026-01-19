@@ -166,3 +166,17 @@ type HealthResponse struct {
 // ConfigResponse represents the client configuration
 type ConfigResponse struct {
 }
+
+// ActivityLog represents a user activity log entry
+type ActivityLog struct {
+	ID           string    `json:"id"`
+	UserID       string    `json:"user_id"`
+	Action       string    `json:"action"`       // "login", "create_notebook", "add_source", "create_note", etc.
+	ResourceType string    `json:"resource_type"` // "notebook", "source", "note", etc.
+	ResourceID   string    `json:"resource_id"`
+	ResourceName string    `json:"resource_name"`
+	Details      string    `json:"details"`       // Additional details in JSON format
+	IPAddress    string    `json:"ip_address"`
+	UserAgent    string    `json:"user_agent"`
+	CreatedAt    time.Time `json:"created_at"`
+}

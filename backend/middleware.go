@@ -216,9 +216,19 @@ func AuditMiddlewareLite() gin.HandlerFunc {
 					c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
 					return
 				}
-		
+
 				c.Next()
 			}
 		}
-		
-		
+
+// GetAuditLogger returns the audit logger instance
+func GetAuditLogger() *golog.Logger {
+	return auditLogger
+}
+
+// LogUserActivity logs user activity to the audit log file
+func LogUserActivity(action, userID, resourceType, resourceID, resourceName, details, ipAddress, userAgent string) {
+	msg := fmt.Sprintf("[USER_ACTIVITY] action=%s user_id=%s resource_type=%s resource_id=%s resource_name=%q details=%q ip=%s user_agent=%q",
+		action, userID, resourceType, resourceID, resourceName, details, ipAddress, userAgent)
+	auditLogger.Info(msg)
+}
