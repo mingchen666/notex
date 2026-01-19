@@ -106,7 +106,7 @@ body {
     display: flex !important;
     flex-direction: column !important;
     height: 100vh !important;
-    overflow: hidden !important;
+    overflow-y: auto !important;
 }
 
 /* Header */
@@ -2437,7 +2437,6 @@ body {
 /* Landing Page */
 .landing-page {
     flex: 1;
-    overflow-y: auto;
     padding: var(--space-2xl) var(--space-xl);
     max-width: 1200px;
     margin: 0 auto;
