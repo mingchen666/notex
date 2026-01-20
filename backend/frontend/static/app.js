@@ -236,6 +236,22 @@ class OpenNotebook {
         }
     }
 
+    // Handle back to list button click
+    async handleBackToList() {
+        // Clear public notebook state
+        this.currentPublicToken = null;
+        this.currentNotebook = null;
+
+        // Reload user's notebooks
+        await this.loadNotebooks();
+
+        // Clear status
+        this.setStatus('就绪');
+
+        // Switch to landing view
+        this.switchView('landing');
+    }
+
     // 设置只读模式
     setReadOnlyMode(readOnly) {
         const workspace = document.getElementById('workspaceContainer');
@@ -410,7 +426,7 @@ class OpenNotebook {
         safeAddEventListener('btnLoginWorkspace', 'click', () => this.handleLogin());
         safeAddEventListener('btnLogoutWorkspace', 'click', () => this.handleLogout());
 
-        safeAddEventListener('btnBackToList', 'click', () => this.switchView('landing'));
+        safeAddEventListener('btnBackToList', 'click', () => this.handleBackToList());
         safeAddEventListener('btnToggleRight', 'click', () => this.toggleRightPanel());
         safeAddEventListener('btnToggleLeft', 'click', () => this.toggleLeftPanel());
         safeAddEventListener('btnShowNotesDetails', 'click', () => this.showNotesListTab());
@@ -1018,6 +1034,7 @@ class OpenNotebook {
             notes.forEach(note => {
                 const card = document.createElement('div');
                 card.className = 'compact-note-card';
+                card.dataset.noteId = note.id;
 
                 const plainText = note.content
                     .replace(/^#+\s+/gm, '')
@@ -2139,6 +2156,18 @@ class OpenNotebook {
     }
 
     async deleteNote(id) {
+        // Immediately remove from UI
+        const noteCard = document.querySelector(`.compact-note-card[data-note-id="${id}"]`);
+        if (noteCard) {
+            noteCard.remove();
+        }
+
+        // Also remove from notes list sidebar
+        const noteItem = document.querySelector(`.note-item[data-id="${id}"]`);
+        if (noteItem) {
+            noteItem.remove();
+        }
+
         try {
             await this.api(`/notebooks/${this.currentNotebook.id}/notes/${id}`, {
                 method: 'DELETE',
@@ -2153,6 +2182,9 @@ class OpenNotebook {
             }
         } catch (error) {
             this.showError('删除笔记失败');
+            // Reload to restore if deletion failed
+            await this.loadNotes();
+            this.renderNotesCompactGrid();
         }
     }
 

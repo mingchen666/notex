@@ -2204,6 +2204,11 @@ body {
     color: var(--text-muted);
 }
 
+/* Hide footer info completely */
+.footer-info {
+    display: none;
+}
+
 .footer-divider {
     color: var(--text-light);
 }
