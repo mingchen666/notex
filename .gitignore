@@ -36,8 +36,8 @@ data/
 logs/
 tmp
 
-open-notebook
-!open-notebook/
+notex
+!notex/
 
 server.log
 

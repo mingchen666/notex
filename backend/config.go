@@ -124,7 +124,7 @@ func LoadConfig() Config {
 		EnableMarkitdown:           getEnvBool("ENABLE_MARKITDOWN", true),
 		AllowMultipleNotesOfSameType: getEnvBool("ALLOW_MULTIPLE_NOTES_OF_SAME_TYPE", true),
 		LangChainAPIKey:  getEnv("LANGCHAIN_API_KEY", ""),
-		LangChainProject: getEnv("LANGCHAIN_PROJECT", "open-notebook"),
+		LangChainProject: getEnv("LANGCHAIN_PROJECT", "notex"),
 		
 		JWTSecret:        getEnv("JWT_SECRET", "your-secret-key-change-me"),
 		

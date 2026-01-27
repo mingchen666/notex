@@ -290,7 +290,7 @@ Apache License 2.0 - 详见 [LICENSE](./LICENSE)
 
 - 灵感来自 [Google 的 NotebookLM](https://notebooklm.google.com/)
 - 使用 [LangGraphGo](https://github.com/smallnest/langgraphgo) 构建
-- 受 [open-notebook](https://github.com/lfnovo/open-notebook) 启发
+- 受 [notex](https://github.com/lfnovo/notex) 启发
 
 ## 📞 支持
 

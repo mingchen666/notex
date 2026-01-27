@@ -1,7 +1,7 @@
 .PHONY: build run test clean fmt vet lint help
 
 # Binary name
-BINARY_NAME=open-notebook
+BINARY_NAME=notex
 
 # Go parameters
 GOCMD=go

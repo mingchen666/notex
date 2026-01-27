@@ -266,7 +266,7 @@ Apache License 2.0 - see [LICENSE](./LICENSE) for details.
 
 - Inspired by [Google's NotebookLM](https://notebooklm.google.com/)
 - Built with [LangGraphGo](https://github.com/smallnest/langgraphgo)
-- Inspired by [open-notebook](https://github.com/lfnovo/open-notebook)
+- Inspired by [notex](https://github.com/lfnovo/notex)
 
 ## 📞 Support
 
